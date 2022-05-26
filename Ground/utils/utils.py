@@ -3,7 +3,6 @@ import os
 import numpy as np
 import cv2 as cv
 from geopy import distance
-import re
 from numpy import genfromtxt
 from models.img_data import ImgData
 from PIL import Image
@@ -25,51 +24,56 @@ def get_files(path):
     # r=root, d=directories, f = files
     for r, d, f in os.walk(path):
         for file in f:
-            if '.JPG' in file:  
+            if '.JPG' in file:
                 files.append(os.path.join(r, file))
             elif '.jpg' in file:
                 files.append(os.path.join(r, file))
     return files
 
-def get_img(files, scale_x=1, scale_y=1, rotate = 0):
+
+def get_img(files, scale_x=1, scale_y=1, rotate=0):
     #files = get_files(path)
     img = []
     for f in files:
         i = cv.imread(f)
-        i = cv.resize(i,None, fx = float(scale_x), fy = float(scale_y), interpolation=cv.INTER_AREA)
+        i = cv.resize(i, None, fx=float(scale_x), fy=float(
+            scale_y), interpolation=cv.INTER_AREA)
         if rotate == 0:
             i = i
         if rotate == 1:
-            i = np.rot90(i,1)
+            i = np.rot90(i, 1)
         if rotate == 2:
-            i = np.rot90(i,2)
+            i = np.rot90(i, 2)
         if rotate == 3:
-            i = np.rot90(i,3)                        
+            i = np.rot90(i, 3)
         #Lat,Lon,_ = get_GPSdata_scalar(f)
         #Yaw,Alt = read_yaw_from_exif(f)
         Lat, Lon, _, Alt, Yaw = read_img_exif(f)
-        Data = ImgData(i,Lat,Lon,Alt,Yaw,f)
+        Data = ImgData(i, Lat, Lon, Alt, Yaw, f)
         img.append(Data)
     return img
 
-def get_img_old(path, scale_x=1, scale_y=1, rotate = 0):
+
+def get_img_old(path, scale_x=1, scale_y=1, rotate=0):
     files = get_files(path)
     img = []
     for f in files:
         i = cv.imread(f)
-        i = cv.resize(i,None, fx = float(scale_x), fy = float(scale_y), interpolation=cv.INTER_AREA)
+        i = cv.resize(i, None, fx=float(scale_x), fy=float(
+            scale_y), interpolation=cv.INTER_AREA)
         if rotate == 0:
             i = i
         if rotate == 1:
-            i = np.rot90(i,1)
+            i = np.rot90(i, 1)
         if rotate == 2:
-            i = np.rot90(i,2)
+            i = np.rot90(i, 2)
         if rotate == 3:
-            i = np.rot90(i,3)                        
+            i = np.rot90(i, 3)
         img.append(i)
     return img
 
-def get_Cali_img(files,path_cali_Mat, scale_x=1, scale_y=1, rotate = 0):
+
+def get_Cali_img(files, path_cali_Mat, scale_x=1, scale_y=1, rotate=0):
     calib_data = np.load(path_cali_Mat)
     mat = calib_data["matrix"]
     dist = calib_data["distortion"]
@@ -78,7 +82,7 @@ def get_Cali_img(files,path_cali_Mat, scale_x=1, scale_y=1, rotate = 0):
         i = cv.imread(f)
         h,  w = i.shape[:2]
         newcameramtx, roi = cv.getOptimalNewCameraMatrix(
-        mat, dist, (w, h), 1, (w, h))
+            mat, dist, (w, h), 1, (w, h))
         # undistort
         dst = cv.undistort(i, mat, dist, None, newcameramtx)
         x, y, w, h = roi
@@ -88,20 +92,22 @@ def get_Cali_img(files,path_cali_Mat, scale_x=1, scale_y=1, rotate = 0):
             h = int(9/16 * w)
             ratio = w/h
         i = dst[y:y+h, x:x+w]
-        i = cv.resize(i,None, fx = float(scale_x), fy = float(scale_y), interpolation=cv.INTER_AREA)
+        i = cv.resize(i, None, fx=float(scale_x), fy=float(
+            scale_y), interpolation=cv.INTER_AREA)
         if rotate == 0:
             i = i
         if rotate == 1:
-            i = np.rot90(i,1)
+            i = np.rot90(i, 1)
         if rotate == 2:
-            i = np.rot90(i,2)
+            i = np.rot90(i, 2)
         if rotate == 3:
-            i = np.rot90(i,3)                
+            i = np.rot90(i, 3)
         #Lat,Lon,_,Alt,Yaw = get_GPSdata_Mav_scalar(Path_Mav,f)
         Lat, Lon, _, Alt, Yaw = read_img_exif(f)
-        Data = ImgData(i,Lat,Lon,Alt,Yaw,f)
-        img.append(Data) 
+        Data = ImgData(i, Lat, Lon, Alt, Yaw, f)
+        img.append(Data)
     return img
+
 
 def get_images(file_path_list, calib):
     # files = get_files(path)
@@ -122,31 +128,35 @@ def get_images(file_path_list, calib):
         img_data_list.append(Data)
     return img_data_list
 
+
 def get_GPSdata(path):
     lat = []
     lon = []
     alt = []
-    files = get_files(path)    
+    files = get_files(path)
     for f in files:
         data = gpsphoto.getGPSData(f)
         lat.append(data["Latitude"])
         lon.append(data["Longitude"])
         alt.append(data["Altitude"])
-    return (lat,lon,alt)
+    return (lat, lon, alt)
+
 
 def read_img_exif(file_path):
     img = Image.open(file_path)
     exif_dict = piexif.load(img.info['exif'])
     raw = exif_dict['Exif'][piexif.ExifIFD.MakerNote]
     tags = pickle.loads(raw)
-    return tags["lat"], tags["lon"], tags["alt"], tags["rel_alt"], tags["hdg"]    
+    return tags["lat"], tags["lon"], tags["alt"], tags["rel_alt"], tags["hdg"]
+
 
 def get_GPSdata_scalar(f):
     data = gpsphoto.getGPSData(f)
     lat = data["Latitude"]
     lon = data["Longitude"]
     alt = data["Altitude"]
-    return lat,lon,alt
+    return lat, lon, alt
+
 
 def find_param(xml_str: str, param_name: str) -> str:
     start = xml_str.find(param_name)
@@ -155,6 +165,7 @@ def find_param(xml_str: str, param_name: str) -> str:
     value = xml_str[start+first_quote_pos +
                     1:start+first_quote_pos+second_quote_pos+1]
     return value
+
 
 def read_yaw_from_exif(file_name: str) -> float:
     fd = open(file_name, "rb")
@@ -187,9 +198,10 @@ def read_yaw_from_exif(file_name: str) -> float:
     #         if len(found) > 0:
     #             alt = float(found[0])
     # # yaw = yaw + (yaw_gimbal - 180.0)
-    return yaw,alt
+    return yaw, alt
 
-def get_GPSdata_Mav(path,path_im):
+
+def get_GPSdata_Mav(path, path_im):
     Lat = []
     Lon = []
     Alt = []
@@ -200,48 +212,50 @@ def get_GPSdata_Mav(path,path_im):
     #     data = csv.reader(f)
     #     next(data)
     data = genfromtxt(path, delimiter=',', skip_header=1)
-    for i in range (0,len(files)):
+    for i in range(0, len(files)):
         ts = files[i]
         ts = float(ts[-18:-4])
         j = 0
         for j in range(0, len(data)):
             if data[j][0] >= ts:
-                d = data[max(0,j-1)]
+                d = data[max(0, j-1)]
                 break
         Lat.append(float(d[1]))
         Lon.append(float(d[2]))
         Alt.append(float(d[3]))
         Alt_rel.append(float(d[4]))
-        hdg.append(float(d[5])) 
+        hdg.append(float(d[5]))
 
-    return(Lat,Lon,Alt,Alt_rel,hdg)
+    return(Lat, Lon, Alt, Alt_rel, hdg)
 
-def get_GPSdata_Mav_scalar(path,f):
+
+def get_GPSdata_Mav_scalar(path, f):
     data = genfromtxt(path, delimiter=',', skip_header=1)
     ts = float(f[-18:-4])
     j = 0
     for j in range(0, len(data)):
         if data[j][0] >= ts:
-            d = data[max(0,j-1)]
+            d = data[max(0, j-1)]
             break
     Lat = (float(d[1]))
-    Lon =(float(d[2]))
-    Alt =(float(d[3]))
+    Lon = (float(d[2]))
+    Alt = (float(d[3]))
     Alt_rel = (float(d[4]))
     hdg = (float(d[5]))
-    return(Lat,Lon,Alt,Alt_rel,hdg)
+    return(Lat, Lon, Alt, Alt_rel, hdg)
 
-def get_dist_xy(lat,lon):
+
+def get_dist_xy(lat, lon):
     f_dist_y = []
     f_dist_x = []
     idx = 0
-    for idx, (o,m) in enumerate(zip(lat,lon)):
-        if (idx+1 < len(lat) and idx-1>=0):
-            p = (lat[idx-1],lon[idx-1])
-            px = (lat[idx],lon[idx-1])
-            py = (lat[idx-1],lon[idx])       
-            dx = distance.distance(p,px).m
-            dy = distance.distance(p,py).m
+    for idx, (o, m) in enumerate(zip(lat, lon)):
+        if (idx+1 < len(lat) and idx-1 >= 0):
+            p = (lat[idx-1], lon[idx-1])
+            px = (lat[idx], lon[idx-1])
+            py = (lat[idx-1], lon[idx])
+            dx = distance.distance(p, px).m
+            dy = distance.distance(p, py).m
             if lat[idx-1] < lat[idx]:
                 dx = -dx
             if lon[idx-1] > lon[idx]:
@@ -249,111 +263,117 @@ def get_dist_xy(lat,lon):
             f_dist_x.append(dx)
             f_dist_y.append(dy)
         else:
-            p = (lat[idx-1],lon[idx-1])
-            px = (lat[idx],lon[idx-1])
-            py = (lat[idx-1],lon[idx])       
-            dx = distance.distance(p,px).m
-            dy = distance.distance(p,py).m
+            p = (lat[idx-1], lon[idx-1])
+            px = (lat[idx], lon[idx-1])
+            py = (lat[idx-1], lon[idx])
+            dx = distance.distance(p, px).m
+            dy = distance.distance(p, py).m
             if lat[idx-1] < lat[idx]:
                 dx = -dx
             if lon[idx-1] > lon[idx]:
                 dy = -dy
             f_dist_x.append(dx)
             f_dist_y.append(dy)
-    del f_dist_x[0] 
+    del f_dist_x[0]
     del f_dist_y[0]
     return f_dist_x, f_dist_y
 
-def get_dist_00(lat,lon):
+
+def get_dist_00(lat, lon):
     f_dist_y = []
     f_dist_x = []
     idx = 0
-    for idx, (o,m) in enumerate(zip(lat,lon)):
-        if (idx+1 < len(lat) and idx-1>=0):
-            p = (lat[0],lon[0])
-            px = (lat[idx],lon[0])
-            py = (lat[0],lon[idx])       
-            dx = distance.distance(p,px).m
-            dy = distance.distance(p,py).m
+    for idx, (o, m) in enumerate(zip(lat, lon)):
+        if (idx+1 < len(lat) and idx-1 >= 0):
+            p = (lat[0], lon[0])
+            px = (lat[idx], lon[0])
+            py = (lat[0], lon[idx])
+            dx = distance.distance(p, px).m
+            dy = distance.distance(p, py).m
             if lat[0] < lat[idx]:
                 dx = -dx
             if lon[0] > lon[idx]:
-                dy = -dy            
+                dy = -dy
             #d = round(d,1)
             f_dist_x.append(dx)
             f_dist_y.append(dy)
         else:
-            p = (lat[0],lon[0])
-            px = (lat[idx],lon[0])
-            py = (lat[0],lon[idx])       
-            dx = distance.distance(p,px).m
-            dy = distance.distance(p,py).m
+            p = (lat[0], lon[0])
+            px = (lat[idx], lon[0])
+            py = (lat[0], lon[idx])
+            dx = distance.distance(p, px).m
+            dy = distance.distance(p, py).m
             if lat[0] < lat[idx]:
                 dx = -dx
             if lon[0] > lon[idx]:
-                dy = -dy            
+                dy = -dy
             #d = round(d,1)
             f_dist_x.append(dx)
             f_dist_y.append(dy)
-    del f_dist_x[0] 
+    del f_dist_x[0]
     del f_dist_y[0]
     return f_dist_x, f_dist_y
+
 
 def get_cmperpx(alt):
     '''
         Altitude in m
     '''
-    w_px = 5472 #px
-    h_px = 3648 #px
-    ratio_w2alt = 124.5 # in cm/m
-    ratio_h2alt = 83.6 # in cm/m
-    real_w = ratio_w2alt*alt # in cm
-    real_h = ratio_h2alt*alt # in cm
+    w_px = 5472  # px
+    h_px = 3648  # px
+    ratio_w2alt = 124.5  # in cm/m
+    ratio_h2alt = 83.6  # in cm/m
+    real_w = ratio_w2alt*alt  # in cm
+    real_h = ratio_h2alt*alt  # in cm
     w_cmperpx = real_w/w_px
     h_cmperpx = real_h/h_px
     cmperpx = (w_cmperpx+h_cmperpx)/2
     return cmperpx
 
-def get_dist_in_px(lat, lon,  cmperpx, scale=1, method = '00', round = 1):
+
+def get_dist_in_px(lat, lon,  cmperpx, scale=1, method='00', round=1):
     if method == '00':
-        f_dist_x, f_dist_y = get_dist_00(lat,lon)
-    else :
-        f_dist_x, f_dist_y = get_dist_xy(lat,lon)
+        f_dist_x, f_dist_y = get_dist_00(lat, lon)
+    else:
+        f_dist_x, f_dist_y = get_dist_xy(lat, lon)
 
     f_dist_px = []
     f_dist_py = []
-    for x,y in zip(f_dist_x , f_dist_y):
-        px_x = (x*100)/cmperpx 
+    for x, y in zip(f_dist_x, f_dist_y):
+        px_x = (x*100)/cmperpx
         px_x = px_x*scale
         if round == 1:
             px_x = round(px_x)
         f_dist_px.append(px_x)
-        px_y = (y*100)/cmperpx 
+        px_y = (y*100)/cmperpx
         px_y = px_y*scale
         if round == 1:
             px_y = round(px_y)
         f_dist_py.append(px_y)
-    return f_dist_px , f_dist_py 
+    return f_dist_px, f_dist_py
 
-def make_canvas(lat,lon, cmperpx):
-    x1 = (min(lat),max(lon))
-    x2 = (max(lat),max(lon))
-    y1 = (max(lat),min(lon))
-    y2 = (max(lat),max(lon))
-    x = int((distance.distance(x1,x2).m)*100/cmperpx)+4000
-    y = int((distance.distance(y1,y2).m)*100/cmperpx)
-    canvas = np.zeros(shape=(x,y,3))
+
+def make_canvas(lat, lon, cmperpx):
+    x1 = (min(lat), max(lon))
+    x2 = (max(lat), max(lon))
+    y1 = (max(lat), min(lon))
+    y2 = (max(lat), max(lon))
+    x = int((distance.distance(x1, x2).m)*100/cmperpx)+4000
+    y = int((distance.distance(y1, y2).m)*100/cmperpx)
+    canvas = np.zeros(shape=(x, y, 3))
     return canvas
 
-def plot_images_xy(path ,alt ,scale = 1):
+
+def plot_images_xy(path, alt, scale=1):
     img = get_img(path, scale_x=scale, scale_y=scale)
-    setofimg = list(map(lambda i : np.rot90(i,3), img))
-    Lat,Lon,h = get_GPSdata(path)
+    setofimg = list(map(lambda i: np.rot90(i, 3), img))
+    Lat, Lon, h = get_GPSdata(path)
     ratio_cm_px = get_cmperpx(alt)
-    dist_px , dist_py = get_dist_in_px(Lat, Lon, ratio_cm_px, scale, method='xy')
-    dist_py.insert(0,int(0))
-    dist_px.insert(0,int(0))
-    blank_page = make_canvas(Lat,Lon,ratio_cm_px)
+    dist_px, dist_py = get_dist_in_px(
+        Lat, Lon, ratio_cm_px, scale, method='xy')
+    dist_py.insert(0, int(0))
+    dist_px.insert(0, int(0))
+    blank_page = make_canvas(Lat, Lon, ratio_cm_px)
     j = 0
     v = int(500)
     a = int(0)+v
@@ -365,29 +385,30 @@ def plot_images_xy(path ,alt ,scale = 1):
         a = int(a+dist_px[j])
         b = int(b+dist_px[j])
         c = int(c+dist_py[j])
-        d = int(d+dist_py[j])        
-        blank_page[a:b , c:d] = im
+        d = int(d+dist_py[j])
+        blank_page[a:b, c:d] = im
         j += 1
         if j != len(setofimg):
             if abs(dist_px[j]) > 100:
                 while j != len(setofimg):
-                    im = np.rot90(setofimg[j],2)
+                    im = np.rot90(setofimg[j], 2)
                     a = int(a+dist_px[j])
                     b = int(b+dist_px[j])
                     c = int(c+dist_py[j])
-                    d = int(d+dist_py[j])        
-                    blank_page[a+0:b+0 , c:d] = im
+                    d = int(d+dist_py[j])
+                    blank_page[a+0:b+0, c:d] = im
                     j += 1
                     if j != len(setofimg):
                         if abs(dist_px[j]) > 100:
                             break
-        else: break
+        else:
+            break
     return blank_page
 
-def get_rot_axes(hdg1,hdg2):
+
+def get_rot_axes(hdg1, hdg2):
     rot_0 = (hdg1 - hdg2)
     cr = np.cos(np.radians(rot_0))
     sr = np.sin(np.radians(rot_0))
-    rot_axes = np.float32(([cr,-sr],[sr,cr]))
+    rot_axes = np.float32(([cr, -sr], [sr, cr]))
     return rot_axes
-
