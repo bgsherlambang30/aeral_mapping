@@ -6,7 +6,8 @@ import utils.utils as utils
 from typing import Tuple, List
 from models.lat_lon import LatLon
 from geopy.distance import geodesic
-
+from Gen_Text import TextGen
+import time
 
 class Stitcher:
     def __init__(self,
@@ -35,7 +36,8 @@ class Stitcher:
         self.cam_rotation = cam_rotation
         self.scaling = scaling
         self.calib = None
-        if calib_path is not None:
+        self.calib_path = calib_path
+        if self.calib_path is not None:
             self.calib = np.load(calib_path)
         self.focal_length = focal_length
         self.sensor_width = sensor_width
@@ -56,6 +58,7 @@ class Stitcher:
         return self.create_map(image_out_name, input_image_path_list, meander=meander)
 
     def create_map(self, image_out_name: str, input_image_path_list: List[str], meander: bool = False) -> Tuple[str, LatLon, LatLon]:
+        start_time = time.time()
         if self.calib_path is None:
             images_list = utils.get_img(
                 input_image_path_list, scale_x=self.scaling, scale_y=self.scaling, rotate=self.cam_rotation)
@@ -120,6 +123,8 @@ class Stitcher:
         self.ref_pos.lon += min(0, xmin) / self.pix_per_lon
         self.ref_pos.lat -= min(0, ymin) / self.pix_per_lat
         k = 0
+        G_Algo = 0
+        CV_Algo = 0
         #images_list = images_list
         for i in range(1, len(images_list), 1):
             print(i)
@@ -143,11 +148,11 @@ class Stitcher:
                         Rot_Mat_cor = us.get_RotMatrix_Correction(c, theta_f)
                         H_com = np.matmul(H_com, Rot_Mat_cor)
                 if self.calib_path is None:
-                    if k == 0 or abs(rot_angle) > 1.5:
-                        k = 2
+                    if k == 0 or abs(rot_angle) > 2:
+                        k = 1
                     else:
                         k -= 1
-                counter = True
+                CV_Algo += 1 
             else:
                 cmpx_now = data_now.alt * self.sensor_width / \
                     (self.focal_length * data_now.img.shape[0]) * 100
@@ -189,7 +194,7 @@ class Stitcher:
                     H_Mat[0][-1] = H_y
                     H_Mat[1][-1] = H_x
                     H_com = np.matmul(H_Mat, H_com)
-                counter = False
+                G_Algo += 1 
                 k = 0
             xmin, xmax, ymin, ymax = us.get_corner(
                 base_img, data_next.img, H_com)
@@ -208,8 +213,8 @@ class Stitcher:
             can = cv.add(canvas, base_img, mask=np.bitwise_not(
                 data_map), dtype=cv.CV_8U)
             base_img = cv.add(can, next_img, dtype=cv.CV_8U)
-            # print(rot_angle, counter)
-            # print(data_now.yaw, data_now.alt)
+
+
 
         tmp = cv.cvtColor(base_img, cv.COLOR_BGR2GRAY)
         _, alpha = cv.threshold(tmp, 0, 255, cv.THRESH_BINARY)
@@ -229,4 +234,13 @@ class Stitcher:
         print("top_left: {}, {}".format(top_left.lat, top_left.lon))
         print("bot_right: {}, {}".format(bot_right.lat, bot_right.lon))
 
+        time_need = time.time() - start_time
+        text = TextGen (self.image_out_path,
+                        image_out_name,
+                        CV_Algo,
+                        G_Algo,
+                        i,
+                        time_need)
+        text.write()
+         
         return out_file_path, top_left, bot_right
