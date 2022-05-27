@@ -412,3 +412,29 @@ def get_rot_axes(hdg1, hdg2):
     sr = np.sin(np.radians(rot_0))
     rot_axes = np.float32(([cr, -sr], [sr, cr]))
     return rot_axes
+
+
+class TextGen:
+    def __init__ (self, path, filename, CV_im, G_im, Tot_im, time, time_CV, time_Geo):
+        self.path = path
+        self.filename = filename
+        self.cv = CV_im
+        self.G = G_im
+        self.Total = Tot_im
+        self.time = time
+        self.t_cv = time_CV
+        self.t_g = time_Geo
+    def write(self):
+        time_im = self.time / self.Total
+        f = open(self.path +'\\' + self.filename + '.txt','w')
+        Inhalt = [  'Number of images with CV Algo = ' + str(self.cv) + '\n',
+                    'Number of images with Geo Algo = ' + str(self.G) + '\n',
+                    'Total image = ' + str(self.Total) + '\n',
+                    'Time in CV = ' + str(self.t_cv) + ' second \n',
+                    'Time in Geo = ' + str(self.t_g) + ' second \n',
+                    'Time needed = ' + str(self.time) + ' second \n',
+                    'Time per Image = ' + str(time_im) + 'second']
+        f.write(self.filename + '\n')
+        f.writelines(Inhalt)
+        return             
+

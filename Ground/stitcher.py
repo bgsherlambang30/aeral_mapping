@@ -1,3 +1,4 @@
+
 import utils.utils_stitching as us
 import cv2 as cv
 import os
@@ -6,8 +7,8 @@ import utils.utils as utils
 from typing import Tuple, List
 from models.lat_lon import LatLon
 from geopy.distance import geodesic
-from Gen_Text import TextGen
 import time
+from utils.utils import TextGen
 
 class Stitcher:
     def __init__(self,
@@ -125,6 +126,8 @@ class Stitcher:
         k = 0
         G_Algo = 0
         CV_Algo = 0
+        Time_CV = 0
+        Time_Geo = 0
         #images_list = images_list
         for i in range(1, len(images_list), 1):
             print(i)
@@ -132,6 +135,7 @@ class Stitcher:
             data_next = images_list[i]
             rot_angle = data_next.yaw-data_now.yaw
             if (abs(rot_angle) > 2 or k > 0) and meander is False:
+                st_CV = time.time() 
                 H_Matrix = us.get_whole_Hmat_seq(
                     data_now.img, data_next.img, method='2DTransform')
                 H_com = np.matmul(H_com, H_Matrix)
@@ -152,8 +156,12 @@ class Stitcher:
                         k = 1
                     else:
                         k -= 1
-                CV_Algo += 1 
+                CV_Algo += 1
+                dt_CV =  time.time() - st_CV
+                Time_CV += dt_CV
+                print(Time_CV)
             else:
+                st_Geo = time.time()
                 cmpx_now = data_now.alt * self.sensor_width / \
                     (self.focal_length * data_now.img.shape[0]) * 100
                 cmpx_next = data_next.alt * self.sensor_width / \
@@ -194,7 +202,10 @@ class Stitcher:
                     H_Mat[0][-1] = H_y
                     H_Mat[1][-1] = H_x
                     H_com = np.matmul(H_Mat, H_com)
-                G_Algo += 1 
+                G_Algo += 1
+                dt_Geo =  time.time() - st_Geo
+                Time_Geo += dt_Geo 
+                print(Time_Geo)
                 k = 0
             xmin, xmax, ymin, ymax = us.get_corner(
                 base_img, data_next.img, H_com)
@@ -240,7 +251,9 @@ class Stitcher:
                         CV_Algo,
                         G_Algo,
                         i,
-                        time_need)
+                        time_need,
+                        time_CV=Time_CV,
+                        time_Geo=Time_Geo)
         text.write()
-         
+        print(Time_CV,Time_Geo)
         return out_file_path, top_left, bot_right
