@@ -130,7 +130,7 @@ class Stitcher:
         Time_Geo = 0
         #images_list = images_list
         for i in range(1, len(images_list), 1):
-            print(i)
+            #print(i)
             data_now = images_list[i-1]
             data_next = images_list[i]
             rot_angle = data_next.yaw-data_now.yaw
@@ -159,7 +159,7 @@ class Stitcher:
                 CV_Algo += 1
                 dt_CV =  time.time() - st_CV
                 Time_CV += dt_CV
-                print(Time_CV)
+                # print(Time_CV)
             else:
                 st_Geo = time.time()
                 cmpx_now = data_now.alt * self.sensor_width / \
@@ -205,7 +205,7 @@ class Stitcher:
                 G_Algo += 1
                 dt_Geo =  time.time() - st_Geo
                 Time_Geo += dt_Geo 
-                print(Time_Geo)
+                # print(Time_Geo)
                 k = 0
             xmin, xmax, ymin, ymax = us.get_corner(
                 base_img, data_next.img, H_com)
@@ -245,15 +245,15 @@ class Stitcher:
         print("top_left: {}, {}".format(top_left.lat, top_left.lon))
         print("bot_right: {}, {}".format(bot_right.lat, bot_right.lon))
 
-        time_need = time.time() - start_time
-        text = TextGen (self.image_out_path,
-                        image_out_name,
-                        CV_Algo,
-                        G_Algo,
-                        i,
-                        time_need,
-                        time_CV=Time_CV,
-                        time_Geo=Time_Geo)
-        text.write()
-        print(Time_CV,Time_Geo)
+        # time_need = time.time() - start_time
+        # text = TextGen (self.image_out_path,
+                        # image_out_name,
+                        # CV_Algo,
+                        # G_Algo,
+                        # i,
+                        # time_need,
+                        # time_CV=Time_CV,
+                        # time_Geo=Time_Geo)
+        # text.write()
+        # print(Time_CV,Time_Geo)
         return out_file_path, top_left, bot_right
