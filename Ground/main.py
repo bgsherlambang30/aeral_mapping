@@ -16,7 +16,7 @@ TILES_ROOT_PATH = "data/tiles/"
 
 FTP_PORT = 21
 FTP_USER = "user1"
-FTP_PW = "password1"
+FTP_PW = "peter123"
 
 FOCAL_LENGTH = 10.2666666667  # mm
 SENSOR_WIDTH = 13.2  # mm
@@ -46,9 +46,9 @@ class MainServer:
         ser.on_receive_callback_f = self.ftp_received_file_callback
         ser.start()
 
-        map_t = threading.Thread(target=self.mapping_task, name="map_t")
-        map_t.setDaemon(True)
-        map_t.start()
+        #map_t = threading.Thread(target=self.mapping_task, name="map_t")
+        #map_t.setDaemon(True)
+        #map_t.start()
 
         server_t = threading.Thread(
             target=self.serve_task, name="tile_server_t")
