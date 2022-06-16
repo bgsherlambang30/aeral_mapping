@@ -3,11 +3,19 @@ import piexif
 import pickle
 import os
 import cv2
+from geopy import distance
+import numpy as np
 
-def data2txt(path,filename,lat,lon,alt,hdg):
+def get_overlap(P1,P2,Z):
+    foy = np.deg2rad(30)
+    b = distance.distance(P1,P2).m
+    OV = ((2*Z*np.tan(foy))-b)/(2*Z*np.tan(foy))
+    return round(OV*100,2), round(b,2)
+
+def data2txt(path,filename,lat,lon,alt,hdg,overlap,distance):
     PATH = path
     f = open(PATH + '\\' + filename + '.txt', 'a')
-    f.write('|  ' + str(lat) +  '  |  ' + str(lon) + '  |  ' + str(alt) + '  |  ' + str(hdg) + '  |\n')
+    f.write('|  ' + str(lat) +  '  |  ' + str(lon) + '  |  ' + str(alt) + '  |  ' + str(hdg) + '  |  ' + str(overlap)+ '  |  '+ str(distance)+'\n')
     f.close()
 
 def get_img(files):

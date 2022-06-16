@@ -8,8 +8,8 @@ path_im_mavic = 'C:\\Users\\bagas\\Documents\\TUB\\Praktikum\\LabFly\\FV-18.08.2
 path_im_mavic2 = 'C:\\Users\\bagas\\Documents\\TUB\\Praktikum\\LabFly\\2021-11-24_neuruppin\\100MEDIA\\sort_w'
 
 
-IMG_NAME = 'plane_2deg'
-PATH_OUT = 'data_test'
+IMG_NAME = 'Auswertung'
+PATH_OUT = 'Assesment\\data_assesment'
 FOCAL_LENGTH = 10.2666666667  # mm
 SENSOR_WIDTH = 13.2  # mm
 SENSOR_HEIGHT = 8.8  # mm

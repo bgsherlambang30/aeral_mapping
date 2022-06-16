@@ -1,16 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-    receives the pi-cam video stream and stores a jpg
-    every second.
-    receives the mavlink stream and writes the current to position
-    to a csv file.
-    tested python version: 3.8
-"""
-
-__author__ = "Juri Bieler"
-__email__ = "juri.bieler@diaven.com"
-__status__ = "Development"
-
 import time
 import datetime
 import os
