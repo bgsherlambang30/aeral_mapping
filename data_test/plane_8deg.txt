@@ -1,8 +1,0 @@
-plane_8deg
-Number of images with CV Algo = 39
-Number of images with Geo Algo = 19
-Total image = 58
-Time in CV = 24.877864599227905 second 
-Time in Geo = 0.01892685890197754 second 
-Time needed = 44.970619916915894 second 
-Time per Image = 0.7753555158088947second

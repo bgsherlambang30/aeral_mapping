@@ -1,6 +1,0 @@
-mavic_2deg
-Number of images with CV Algo = 17
-Number of images with Geo Algo = 52
-Total image = 69
-Time needed = 77.29449915885925 second 
-Time per Image = 1.1202101327370906second
